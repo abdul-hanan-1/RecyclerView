@@ -5,75 +5,79 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.media.session.PlaybackState;
 
 import androidx.annotation.Nullable;
 
-import com.google.android.material.tabs.TabLayout;
-
 import java.util.ArrayList;
+import java.util.List;
 
 public class DbHelper extends SQLiteOpenHelper {
-    public static final String STUDENT_NAME = "STUDENTName";
-    public static final String STUDENT_AGE = "STUDENTAge";
-    public static final String ACTIVE_STUDENT = "ActiveSTUDENT";
-    public static final String STUDENT_ID = "STUDENTID";
-    public static final String STUDENT_TABLE = "StudentTable";
-
     public DbHelper(@Nullable Context context) {
-        super(context, "studentDB.db", null, 4);
+        super(context, "Employee",null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        //String createTableSTatementOne = "CREATE TABLE CustTable(STUDENTID Integer PRIMARY KEY AUTOINCREMENT, " + STUDENT_NAME_FIRST + " Text, STUDENTAge Int, ActiveSTUDENT BOOL) ";
-        String createTableSTatement = "CREATE TABLE " + STUDENT_TABLE + "(" + STUDENT_ID + " Integer PRIMARY KEY AUTOINCREMENT, " + STUDENT_NAME + " Text, " + STUDENT_AGE + " Int, " + ACTIVE_STUDENT + " BOOL) ";
-        db.execSQL(createTableSTatement);
+        String query="CREATE TABLE EMPLOYEE (ID INTEGER PRIMARY KEY AUTOINCREMENT,NAME TEXT,AGE INTEGER)";
+        db.execSQL(query);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + STUDENT_TABLE);
-        onCreate(db);
+    public void onUpgrade(SQLiteDatabase db, int i, int i1) {
     }
 
-    public void  addStudent(StudentModel STUDENTModel){
-        SQLiteDatabase db = this.getWritableDatabase();
-        //Hash map, as we did in bundles
-        ContentValues cv = new ContentValues();
-
-        cv.put(STUDENT_NAME, STUDENTModel.getName());
-        cv.put(STUDENT_AGE, STUDENTModel.getAge());
-        cv.put(ACTIVE_STUDENT, STUDENTModel.isActive());
-        db.insert(STUDENT_TABLE, null, cv);
-        db.close();
-
-        //NullCoumnHack
-        //long insert =
-        //if (insert == -1) { return false; }
-        //else{return true;}
+    public Boolean insert(String name, int age){
+        SQLiteDatabase db=this.getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put("Name",name);
+        contentValues.put("Age",age);
+        long res=db.insert("Employee",null,contentValues);
+        if(res==-1){
+            return false;
+        }else{
+            return true;
+        }
     }
 
-    public ArrayList<StudentModel> getAllStudents() {
-
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursorCourses = db.rawQuery("SELECT * FROM " + STUDENT_TABLE, null);
-
-        ArrayList<StudentModel> studentArrayList = new ArrayList<>();
-
-        // moving our cursor to first position.
-        if (cursorCourses.moveToFirst()) {
+    public Boolean update(String name, int age,int id){
+        SQLiteDatabase db=this.getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put("Name",name);
+        contentValues.put("Age",age);
+        long res=db.update("Employee",contentValues,"ID=?",new String[]{name});
+        if(res==-1){
+            return false;
+        }else{
+            return true;
+        }
+    }
+    public Boolean delete(String name, int age,int id){
+        SQLiteDatabase db=this.getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put("Name",name);
+        contentValues.put("Age",age);
+        long res=db.delete("Employee","where ID=?",new String[]{Integer.toString(id)});
+        if(res==-1){
+            return false;
+        }else{
+            return true;
+        }
+    }
+    public ArrayList<Employee> allData(){
+        String query="SELECT * FROM EMPLOYEE";
+        ArrayList<Employee>data=new ArrayList<Employee>();
+        SQLiteDatabase db=this.getReadableDatabase();
+        Cursor res=db.rawQuery(query,null);
+        if(res.moveToFirst()){
             do {
-
-                studentArrayList.add(new StudentModel(cursorCourses.getString(1),
-                      cursorCourses.getInt(2),
-                        cursorCourses.getInt(3) == 1 ? true : false));
-            } while (cursorCourses.moveToNext());
+                String name=res.getString(1);
+                int age=res.getInt(2);
+                data.add(new Employee(age,name));
+            }while(res.moveToNext());
+        }else{
 
         }
-
-        cursorCourses.close();
-        return studentArrayList;
+        res.close();
+        return data;
     }
 }

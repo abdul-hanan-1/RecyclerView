@@ -1,65 +1,73 @@
 package haqnawaz.org.sqlitedb20211216;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    Button buttonAdd, buttonViewAll;
-    EditText editName, editAge;
-    Switch switchIsActive;
-    ListView listViewStudent;
+    RecyclerView recyclerView;
+    ArrayList<Employee> data;
+    Button add,upd,dlt,view;
+    TextView name,age;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        recyclerView=findViewById(R.id.myrec);
+        data=new ArrayList<>();
+        add=findViewById(R.id.insert);
+        view=findViewById(R.id.all);
 
-        buttonAdd = findViewById(R.id.buttonAdd);
-        buttonViewAll = findViewById(R.id.buttonViewAll);
-        editName = findViewById(R.id.editTextName);
-        editAge = findViewById(R.id.editTextAge);
-        switchIsActive = findViewById(R.id.switchStudent);
-        listViewStudent = findViewById(R.id.listViewStudent);
-
-        buttonAdd.setOnClickListener(new View.OnClickListener() {
-            StudentModel studentModel;
-
+        add.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                try {
-                    studentModel = new StudentModel(editName.getText().toString(), Integer.parseInt(editAge.getText().toString()), switchIsActive.isChecked());
-                    Toast.makeText(MainActivity.this, studentModel.toString(), Toast.LENGTH_SHORT).show();
+            public void onClick(View view) {
+                DbHelper db=new DbHelper(MainActivity.this);
+                name=findViewById(R.id.name);
+                age=findViewById(R.id.age);
+                if(name.getText()==null||age.getText()==null){
+                    Toast.makeText(MainActivity.this, "Enter Data in Fields", Toast.LENGTH_SHORT).show();
+                }else{
+                    boolean res=db.insert(name.getText().toString(),Integer.parseInt(String.valueOf(age.getText())));
+                    if(res){
+                        Toast.makeText(MainActivity.this, "Added", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                    }
                 }
-                catch (Exception e){
-                    Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                }
-                DbHelper dbHelper = new DbHelper(MainActivity.this);
-                 dbHelper.addStudent(studentModel);
             }
         });
 
-        buttonViewAll.setOnClickListener(new View.OnClickListener() {
+        view.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                DbHelper dbHelper = new DbHelper(MainActivity.this);
-                List<StudentModel> list = dbHelper.getAllStudents();
-                ArrayAdapter arrayAdapter = new ArrayAdapter<StudentModel>(MainActivity.this, android.R.layout.simple_list_item_1,list);
-                listViewStudent.setAdapter(arrayAdapter);
-
-
+            public void onClick(View view) {
+                DbHelper db=new DbHelper(MainActivity.this);
+                data=db.allData();
+                setAdapter();
 
             }
         });
+
+
+
 
     }
+
+    private void setAdapter(){
+        EmpAdapter adapter=new EmpAdapter(data,this);
+        RecyclerView.LayoutManager layoutManager=new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
+    }
+
+
 }
